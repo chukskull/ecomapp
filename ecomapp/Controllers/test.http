@@ -1,0 +1,2 @@
+GET http://localhost:5097/api/Category
+Content-Type: application/json
