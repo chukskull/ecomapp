@@ -1,5 +1,7 @@
 using ecomapp;
 using ecomapp.DataAccess.Data;
+using ecomapp.DataAccess.Repository;
+using ecomapp.DataAccess.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +13,8 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(
     builder.Configuration.GetConnectionString("DefaultConnection")
 ));
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
 var app = builder.Build();

@@ -1,4 +1,5 @@
 using ecomapp.DataAccess.Data;
+using ecomapp.DataAccess.Repository.IRepository;
 using ecomapp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -7,16 +8,16 @@ namespace ecomapp
 {
     public class CategoryController : Controller
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IUnitOfWork _UnitOfWork;
 
-        public CategoryController(ApplicationDbContext db)
+        public CategoryController(IUnitOfWork db)
         {
-            _db = db;
+            _UnitOfWork = db;
         }
         [HttpGet]
         public IActionResult Index()
         {
-            List<Category> categories = _db.categories.ToList();
+            List<Category> categories = _UnitOfWork.category.GetAll().ToList();
             return View(categories);
             // return Ok(categories);
         }
@@ -36,8 +37,8 @@ namespace ecomapp
             if (ModelState.IsValid)
             {
 
-                _db.categories.Add(obj);
-                _db.SaveChanges();
+                _UnitOfWork.category.Add(obj);
+                _UnitOfWork.Save();
                 TempData["success"] = "Category Created successfully";
 
                 return RedirectToAction("Index");
@@ -50,7 +51,8 @@ namespace ecomapp
             {
                 return NotFound();
             }
-            Category? ctg = _db.categories.Where(u => u.Id == id).FirstOrDefault();
+            // Category? ctg = _db.categories.Where(u => u.Id == id).FirstOrDefault();
+            Category? ctg = _UnitOfWork.category.Get(u => u.Id == id);
 
             if (ctg == null)
             {
@@ -69,8 +71,8 @@ namespace ecomapp
             if (ModelState.IsValid)
             {
 
-                _db.categories.Update(obj);
-                _db.SaveChanges();
+                _UnitOfWork.category.Update(obj);
+                _UnitOfWork.Save();
                 TempData["success"] = "Category Updated successfully";
 
                 return RedirectToAction("Index");
@@ -83,7 +85,7 @@ namespace ecomapp
             {
                 return NotFound();
             }
-            Category? obj = _db.categories.Where(u => u.Id == id).FirstOrDefault();
+            Category? obj = _UnitOfWork.category.Get(u => u.Id == id);
             if (obj == null)
             {
                 return NotFound();
@@ -99,14 +101,14 @@ namespace ecomapp
             {
                 return NotFound();
             }
-            Category? obj = _db.categories.FirstOrDefault(u => u.Id == id);
+            Category? obj = _UnitOfWork.category.Get(u => u.Id == id);
             if (obj == null)
             {
                 return NotFound();
             }
 
-            _db.categories.Remove(obj);
-            _db.SaveChanges();
+            _UnitOfWork.category.Remove(obj);
+            _UnitOfWork.Save();
             TempData["success"] = "Category Deleted successfully";
             return RedirectToAction("Index");
         }
