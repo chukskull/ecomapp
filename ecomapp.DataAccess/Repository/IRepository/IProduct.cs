@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ecomapp.Models;
 
 namespace ecomapp.DataAccess.Repository.IRepository
 {
-    public interface IUnitOfWork
+    public interface IProduct : IRepository<Product>
     {
-        void Save();
-        ICategory category { get; }
-        IProduct product { get; }
+        void Update(Product obj);
 
     }
 }
