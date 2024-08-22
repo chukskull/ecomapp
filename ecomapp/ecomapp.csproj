@@ -9,7 +9,7 @@
   <ItemGroup>
   <ProjectReference Include="../ecomapp.DataAccess/ecomapp.DataAccess.csproj" />
   <ProjectReference Include="../ecomapp.Models/ecomapp.Models.csproj" />
-  <ProjectReference Include="./ecomapp.Utility/ecomapp.Utility.csproj" />
+  <!-- <ProjectReference Include="./ecomapp.Utility/ecomapp.Utility.csproj" /> -->
 
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0-preview.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0-preview.1">

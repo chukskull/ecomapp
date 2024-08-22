@@ -5,7 +5,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using ecomapp.DataAccess.Repository.IRepository;
 using ecomapp.Models;
+using ecomapp.Models.ModelsView;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 
 namespace ecomapp.Areas.Admin.Controllers
@@ -24,47 +26,76 @@ namespace ecomapp.Areas.Admin.Controllers
         {
             List<Product> products = _UnitOfWork.product.GetAll().ToList();
 
+
             return View(products);
         }
 
-        public IActionResult CreateProduct()
+        public IActionResult UpSert(int? id)
+
         {
-            return View();
+
+            // ViewBag.CategoryList = categories;
+            ProductVM productVM = new ProductVM
+            {
+                Product = new Product(),
+                CategoryList = _UnitOfWork.category
+                .GetAll().Select(u => new SelectListItem
+                {
+                    Text = u.Name,
+                    Value = u.Id.ToString()
+                })
+            };
+            if (id != null || id != 0)
+            {
+                productVM.Product = _UnitOfWork.product.Get(u => u.Id == id);
+                return View(productVM);
+            }
+            else
+                return View(productVM);
         }
         [HttpPost]
 
-        public IActionResult CreateProduct(Product obj)
+        public IActionResult UpSert(ProductVM obj, IFormFile? file)
         {
             if (ModelState.IsValid)
             {
-                _UnitOfWork.product.Add(obj);
+                _UnitOfWork.product.Add(obj.Product);
                 _UnitOfWork.Save();
                 return RedirectToAction("Index");
+            }
+            else
+            {
+                obj.CategoryList = _UnitOfWork.category
+                .GetAll().Select(u => new SelectListItem
+                {
+                    Text = u.Name,
+                    Value = u.Id.ToString()
+                });
             }
             return View();
         }
 
-        public IActionResult EditProduct(int? id)
-        {
-            if (id == null || id == 0)
-            {
-                return NotFound();
-            }
-            Product product = _UnitOfWork.product.Get(u => u.Id == id);
+        // public IActionResult EditProduct(int? id)
+        // {
+        //     if (id == null || id == 0)
+        //     {
+        //         return NotFound();
+        //     }
+        //     Product product = _UnitOfWork.product.Get(u => u.Id == id);
 
-            return View(product);
-        }
-        [HttpPost]
-        public IActionResult EditProduct(Product prd)
-        {
-            if (ModelState.IsValid)
-            {
-                _UnitOfWork.product.Update(prd);
-                _UnitOfWork.Save();
-                return RedirectToAction("Index");
-            }
-            return NotFound();
-        }
+        //     return View(product);
+        // }
+        // [HttpPost]
+        // public IActionResult EditProduct(Product prd)
+        // {
+        //     if (ModelState.IsValid)
+        //     {
+        //         _UnitOfWork.product.Update(prd);
+        //         _UnitOfWork.Save();
+        //         return RedirectToAction("Index");
+        //     }
+        //     return NotFound();
+        // }
 
         [HttpGet]
         public IActionResult Delete(int? id)
