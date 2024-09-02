@@ -1,4 +1,4 @@
-using System;
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -16,15 +16,17 @@ namespace ecomapp.Areas.Admin.Controllers
     public class ProductController : Controller
     {
         private readonly IUnitOfWork _UnitOfWork;
-        public ProductController(IUnitOfWork db)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        public ProductController(IUnitOfWork db, IWebHostEnvironment webHostEnvironment)
         {
             _UnitOfWork = db;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet]
         public IActionResult Index()
         {
-            List<Product> products = _UnitOfWork.product.GetAll().ToList();
+            List<Product> products = _UnitOfWork.product.GetAll(includeProperties: "Category").ToList();
 
 
             return View(products);
@@ -37,15 +39,17 @@ namespace ecomapp.Areas.Admin.Controllers
             // ViewBag.CategoryList = categories;
             ProductVM productVM = new ProductVM
             {
-                Product = new Product(),
+
                 CategoryList = _UnitOfWork.category
                 .GetAll().Select(u => new SelectListItem
                 {
                     Text = u.Name,
                     Value = u.Id.ToString()
-                })
+                }),
+                Product = new Product()
+
             };
-            if (id != null || id != 0)
+            if (id != null && id != 0)
             {
                 productVM.Product = _UnitOfWork.product.Get(u => u.Id == id);
                 return View(productVM);
@@ -59,7 +63,30 @@ namespace ecomapp.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                _UnitOfWork.product.Add(obj.Product);
+                string wwwRootPath = _webHostEnvironment.WebRootPath;
+                if (file != null)
+                {
+
+                    string filename = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                    string combine = Path.Combine(wwwRootPath, "images/product");
+
+                    if (!string.IsNullOrEmpty(obj.Product.ImageUrl))
+                    {
+                        if (System.IO.File.Exists(Path.Combine(wwwRootPath, obj.Product.ImageUrl.TrimStart('/'))))
+                        {
+                            System.IO.File.Delete(Path.Combine(wwwRootPath, obj.Product.ImageUrl.TrimStart('/')));
+                        }
+                    }
+                    using (var FileStream = new FileStream(Path.Combine(string.Concat('/', combine), filename), FileMode.Create))
+                    {
+                        file.CopyTo(FileStream);
+                    }
+                    obj.Product.ImageUrl = "/images/product/" + filename;
+                }
+                if (obj.Product.Id == 0)
+                    _UnitOfWork.product.Add(obj.Product);
+                else
+                    _UnitOfWork.product.Update(obj.Product);
                 _UnitOfWork.Save();
                 return RedirectToAction("Index");
             }
