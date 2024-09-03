@@ -1,2 +1,2 @@
-GET http://localhost:5097/api/Category
+GET http://localhost:5097/Admin/Product/Getall
 Content-Type: application/json

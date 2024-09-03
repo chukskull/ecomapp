@@ -124,38 +124,69 @@ namespace ecomapp.Areas.Admin.Controllers
         //     return NotFound();
         // }
 
-        [HttpGet]
+        // [HttpGet]
+        // public IActionResult Delete(int? id)
+        // {
+
+        //     if (id == null || id == 0)
+        //     {
+        //         return NotFound();
+        //     }
+        //     Product product = _UnitOfWork.product.Get(u => u.Id == id);
+
+        //     return View(product);
+        // }
+
+        // [HttpPost, ActionName("Delete")]
+
+        // public IActionResult DeleteProduct(int? id)
+        // {
+        //     if (id == null || id == 0)
+        //     {
+        //         return NotFound();
+        //     }
+
+        //     Product? product = _UnitOfWork.product.Get(u => u.Id == id);
+
+        //     if (product == null)
+        //     {
+        //         return NotFound();
+        //     }
+
+        //     _UnitOfWork.product.Remove(product);
+        //     _UnitOfWork.Save();
+        //     return RedirectToAction("Index");
+        // }
+
+
+
+        public IActionResult Getall()
+        {
+            List<Product> products = _UnitOfWork.product.GetAll(includeProperties: "Category").ToList();
+
+            return Json(new { success = true, data = products });
+        }
+
+        // [HttpDelete]
+
         public IActionResult Delete(int? id)
         {
-
-            if (id == null || id == 0)
+            if (id == 0 || id == null)
             {
-                return NotFound();
+                Json(new { message = "Not Found", success = "false" });
             }
-            Product product = _UnitOfWork.product.Get(u => u.Id == id);
-
-            return View(product);
-        }
-
-        [HttpPost, ActionName("Delete")]
-
-        public IActionResult DeleteProduct(int? id)
-        {
-            if (id == null || id == 0)
+            var product = _UnitOfWork.product.Get(u => u.Id == id);
+            var file = Path.Combine(_webHostEnvironment.WebRootPath, product.ImageUrl.TrimStart('/'));
+            if (System.IO.File.Exists(file))
             {
-                return NotFound();
+                System.IO.File.Delete(file);
             }
-
-            Product? product = _UnitOfWork.product.Get(u => u.Id == id);
-
-            if (product == null)
-            {
-                return NotFound();
-            }
-
             _UnitOfWork.product.Remove(product);
             _UnitOfWork.Save();
-            return RedirectToAction("Index");
+
+            return Json(new { message = "Deleted Successfully", success = "true" });
+
         }
+
     }
 }
