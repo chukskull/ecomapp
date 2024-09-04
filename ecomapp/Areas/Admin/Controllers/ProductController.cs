@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using ecomapp.DataAccess.Repository;
 using ecomapp.DataAccess.Repository.IRepository;
 using ecomapp.Models;
 using ecomapp.Models.ModelsView;
@@ -59,47 +60,101 @@ namespace ecomapp.Areas.Admin.Controllers
         }
         [HttpPost]
 
-        public IActionResult UpSert(ProductVM obj, IFormFile? file)
+        // public IActionResult UpSert(ProductVM obj, IFormFile? file)
+        // {
+        //     if (ModelState.IsValid)
+        //     {
+        //         string wwwRootPath = _webHostEnvironment.WebRootPath;
+        //         if (file != null)
+        //         {
+
+        //             string filename = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+        //             string combine = Path.Combine(wwwRootPath, "images/product");
+
+        //             if (!string.IsNullOrEmpty(obj.Product.ImageUrl))
+        //             {
+        //                 if (System.IO.File.Exists(Path.Combine(wwwRootPath, obj.Product.ImageUrl.TrimStart('/'))))
+        //                 {
+        //                     System.IO.File.Delete(Path.Combine(wwwRootPath, obj.Product.ImageUrl.TrimStart('/')));
+        //                 }
+        //             }
+        //             using (var FileStream = new FileStream(Path.Combine(string.Concat('/', combine), filename), FileMode.Create))
+        //             {
+        //                 file.CopyTo(FileStream);
+        //             }
+        //             obj.Product.ImageUrl = "/images/product/" + filename;
+        //         }
+        //         if (obj.Product.Id == 0)
+        //             _UnitOfWork.product.Add(obj.Product);
+        //         else
+        //             _UnitOfWork.product.Update(obj.Product);
+        //         _UnitOfWork.Save();
+        //         return RedirectToAction("Index");
+        //     }
+        //     else
+        //     {
+        //         obj.CategoryList = _UnitOfWork.category
+        //         .GetAll().Select(u => new SelectListItem
+        //         {
+        //             Text = u.Name,
+        //             Value = u.Id.ToString()
+        //         });
+        //     }
+        //     return View();
+        // }
+        [HttpPost]
+        public IActionResult Upsert(ProductVM productVM, IFormFile? file)
         {
             if (ModelState.IsValid)
             {
                 string wwwRootPath = _webHostEnvironment.WebRootPath;
                 if (file != null)
                 {
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                    string productPath = Path.Combine(wwwRootPath, @"images/product");
 
-                    string filename = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                    string combine = Path.Combine(wwwRootPath, "images/product");
-
-                    if (!string.IsNullOrEmpty(obj.Product.ImageUrl))
+                    if (!string.IsNullOrEmpty(productVM.Product.ImageUrl))
                     {
-                        if (System.IO.File.Exists(Path.Combine(wwwRootPath, obj.Product.ImageUrl.TrimStart('/'))))
+                        //delete the old image
+                        var oldImagePath =
+                            Path.Combine(wwwRootPath, productVM.Product.ImageUrl.TrimStart('/'));
+
+                        if (System.IO.File.Exists(oldImagePath))
                         {
-                            System.IO.File.Delete(Path.Combine(wwwRootPath, obj.Product.ImageUrl.TrimStart('/')));
+                            System.IO.File.Delete(oldImagePath);
                         }
                     }
-                    using (var FileStream = new FileStream(Path.Combine(string.Concat('/', combine), filename), FileMode.Create))
+
+                    using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
                     {
-                        file.CopyTo(FileStream);
+                        file.CopyTo(fileStream);
                     }
-                    obj.Product.ImageUrl = "/images/product/" + filename;
+
+                    productVM.Product.ImageUrl = @"/images/product/" + fileName;
                 }
-                if (obj.Product.Id == 0)
-                    _UnitOfWork.product.Add(obj.Product);
+
+                if (productVM.Product.Id == 0)
+                {
+                    _UnitOfWork.product.Add(productVM.Product);
+                }
                 else
-                    _UnitOfWork.product.Update(obj.Product);
+                {
+                    _UnitOfWork.product.Update(productVM.Product);
+                }
+
                 _UnitOfWork.Save();
+                TempData["success"] = "Product created successfully";
                 return RedirectToAction("Index");
             }
             else
             {
-                obj.CategoryList = _UnitOfWork.category
-                .GetAll().Select(u => new SelectListItem
+                productVM.CategoryList = _UnitOfWork.category.GetAll().Select(u => new SelectListItem
                 {
                     Text = u.Name,
                     Value = u.Id.ToString()
                 });
+                return View(productVM);
             }
-            return View();
         }
 
         // public IActionResult EditProduct(int? id)
@@ -167,7 +222,7 @@ namespace ecomapp.Areas.Admin.Controllers
             return Json(new { success = true, data = products });
         }
 
-        // [HttpDelete]
+        [HttpDelete]
 
         public IActionResult Delete(int? id)
         {

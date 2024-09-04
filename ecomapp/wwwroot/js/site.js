@@ -1,6 +1,9 @@
 ﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
 // for details on configuring this project to bundle and minify static web assets.
-const Delete = (url) => {
+
+var dataTable;
+
+function Delete(url)  {
     Swal.fire({
     title: "Are you sure?",
     text: "You won't be able to revert this!",
@@ -15,7 +18,8 @@ const Delete = (url) => {
             url: url,
             type: 'DELETE',
             success: function(data) {
-                toastr.sucess(data.message);
+                toastr.success(data.message);
+                dataTable.ajax.reload();
             }
         })
     }
@@ -24,19 +28,24 @@ const Delete = (url) => {
 
 // Write your JavaScript code.
 $(document).ready( function () {
-    $('#myTable').DataTable({
-         "ajax": {
+        loadTable();
+} );
+
+function loadTable() {
+    dataTable = $('#myTable').DataTable({
+        "ajax": {
             url: '/admin/product/getall',
             dataSrc: 'data'
         },
-       "columns": [
-            { data: 'title', "width":"15%" },
-            { data: 'isbn', "width":"15%" },
-            { data: 'author', "width":"10%" },
-            { data: 'price', "width":"15%" },
-            { data: 'category.name', "width":"15%" },
-            {data: 'id', "width":"20%", "render": function(data) {
-                return `<div class="w-75 btn-group" role="group">
+        "columns": [
+            { data: 'title', "width": "15%" },
+            { data: 'isbn', "width": "15%" },
+            { data: 'author', "width": "10%" },
+            { data: 'price', "width": "15%" },
+            { data: 'category.name', "width": "15%" },
+            {
+                data: 'id', "width": "20%", "render": function (data) {
+                    return `<div class="w-75 btn-group" role="group">
                             <a href="/admin/product/upsert?id=${data}" class="btn btn-primary mx-2">
                                 <i class="bi bi-pencil-square"></i> Edit
                             </a>
@@ -45,8 +54,9 @@ $(document).ready( function () {
                             <i class="bi bi-trash-fill"></i> Delete
                             </a>
                         </div>`
-            }}
-          
-         ]
+                }
+            }
+
+        ]
     })
-} );
+}
